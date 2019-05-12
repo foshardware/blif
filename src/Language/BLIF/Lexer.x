@@ -21,7 +21,7 @@ $any     = [.\n\r]
 @preprocessor = \# .* @newline
 
 $ident_start = [a-zA-Z_\@\$]
-$ident_part  = [a-zA-Z_0-9\[\]\$\.\:\\\?]
+$ident_part  = [a-zA-Z_0-9\-\[\]\$\.\:\\\?]
 $const_part  = [A-Z_]
 
 $bit       = [0-1]
