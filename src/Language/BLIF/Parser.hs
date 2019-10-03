@@ -1,11 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.BLIF.Parser where
 
 import Control.Monad
-import Data.Text (Text)
-import qualified Data.Text as T
-import Text.Parsec hiding (optional)
+import Data.Text (Text, count)
+import Data.Vector (fromListN)
+import Text.Parsec hiding (optional, count)
 import Text.Parsec.String (GenParser)
 import Text.Parsec.Pos
 import Prelude hiding (null)
@@ -17,18 +18,20 @@ import Language.BLIF.Syntax hiding (modelName)
 type Parser = GenParser (Lexer Token) ()
 
 parseBLIF :: Text -> Either ParseError BLIF
-parseBLIF = parse blif [] . lexer []
+parseBLIF src = parse (blif n) "" $ lexer [] src
+  where n = count "\n" src
 
-blif :: Parser BLIF
-blif = BLIF <$> many1 model <?> "blif"
 
-model :: Parser Model
-model = Model
+blif :: Int -> Parser BLIF
+blif n = BLIF <$> many1 (model n) <?> "blif"
+
+model :: Int -> Parser Model
+model n = Model
   <$> modelName
   <*> inputList
   <*> outputList
   <*> clockList
-  <*> many1 command
+  <*> (fromListN n <$> many1 command)
   <*  end_
   <?> "model"
 
@@ -67,7 +70,7 @@ logicGate = names_ >> LogicGate
 
 singleOutputCover :: Parser SingleOutputCover
 singleOutputCover = SingleOutputCover <$> planes <?> "single_output_cover"
-    where planes = many1 (inputPlane <|> outputPlane) <|> pure [T.pack "0"]
+    where planes = many1 (inputPlane <|> outputPlane) <|> pure ["0"]
 
 libraryGate :: Parser LibraryGate
 libraryGate = gate_ >> LibraryGate

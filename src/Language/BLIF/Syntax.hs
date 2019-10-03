@@ -2,22 +2,19 @@
 module Language.BLIF.Syntax where
 
 import Data.Text (Text)
+import Data.Vector (Vector)
+
 
 type Ident = Text
 
 newtype BLIF = BLIF { models :: [Model] }
   deriving (Eq, Show)
 
-data Model = Model ModelName InputList OutputList ClockList [Command]
+data Model = Model ModelName InputList OutputList ClockList (Vector Command)
   deriving (Eq, Show)
 
 modelName :: Model -> ModelName
 modelName (Model name _ _ _ _) = name
-
-subckts :: Model -> [Ident]
-subckts (Model n i o c (Subcircuit name _ : cs)) = name : subckts (Model n i o c cs)
-subckts (Model n i o c (_ : cs)) = subckts (Model n i o c cs)
-subckts (Model _ _ _ _ _) = []
 
 type ModelName = Ident
 
