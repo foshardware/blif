@@ -20,7 +20,7 @@ type Parser = ParsecT [Lexer Token] () (Reader Int)
 
 parseBLIF :: Text -> Either ParseError BLIF
 parseBLIF src = flip runReader n $ runParserT blif () "" $ lexer [] src
-  where n = maximum $ count "\n" <$> splitOn ".model" src
+  where n = maximum $ count "." <$> splitOn ".model" src
 
 
 blif :: Parser BLIF
