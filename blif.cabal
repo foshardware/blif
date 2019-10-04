@@ -1,5 +1,5 @@
 name:           blif
-version:        0.1.0.0
+version:        0.2.0.0
 description:    Please see the README on GitHub at <https://github.com/foshardware/blif#readme>
 homepage:       https://github.com/foshardware/blif#readme
 bug-reports:    https://github.com/foshardware/blif/issues
@@ -37,6 +37,7 @@ library
   build-depends:
       array
     , base >=4.7 && <5
+    , mtl
     , parsec
     , vector
     , text

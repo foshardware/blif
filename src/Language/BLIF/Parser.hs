@@ -4,7 +4,8 @@
 module Language.BLIF.Parser where
 
 import Control.Monad
-import Data.Text (Text, count)
+import Control.Monad.Reader
+import Data.Text (Text, splitOn, count)
 import Data.Vector (fromListN)
 import Text.Parsec hiding (optional, count)
 import Text.Parsec.String (GenParser)
@@ -15,23 +16,23 @@ import Language.BLIF.Lexer
 import Language.BLIF.Syntax hiding (modelName)
 
 
-type Parser = GenParser (Lexer Token) ()
+type Parser = ParsecT [Lexer Token] () (Reader Int)
 
 parseBLIF :: Text -> Either ParseError BLIF
-parseBLIF src = parse (blif n) "" $ lexer [] src
-  where n = count "\n" src
+parseBLIF src = flip runReader n $ runParserT blif () "" $ lexer [] src
+  where n = maximum $ count "\n" <$> splitOn ".model" src
 
 
-blif :: Int -> Parser BLIF
-blif n = BLIF <$> many1 (model n) <?> "blif"
+blif :: Parser BLIF
+blif = BLIF <$> many1 model <?> "blif"
 
-model :: Int -> Parser Model
-model n = Model
+model :: Parser Model
+model = Model
   <$> modelName
   <*> inputList
   <*> outputList
   <*> clockList
-  <*> (fromListN n <$> many1 command)
+  <*> (fromListN <$> lift ask <*> many1 command)
   <*  end_
   <?> "model"
 
@@ -104,10 +105,10 @@ eitherOr :: Parser a -> Parser b -> Parser (Either a b)
 eitherOr a b = Left <$> a <|> Right <$> b
 
 maybeToken :: (Token -> Maybe a) -> Parser a
-maybeToken test = token showT posT testT
+maybeToken test = tokenPrim showT posT testT
   where
   showT (L _ t) = show t
-  posT  (L x _) = pos2sourcePos x
+  posT  _ (L x _) _ = pos2sourcePos x
   testT (L _ t) = test t
   pos2sourcePos (l, c) = newPos "" l c
 
