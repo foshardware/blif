@@ -21,9 +21,9 @@ type Parser = GenParser (Lexer Token) ()
 
 parseBLIF :: Text -> Either ParseError BLIF
 parseBLIF src
-  = if all isRight xs
-    then pure . BLIF $ rights xs
-    else BLIF . pure <$> head xs
+  = if any isLeft xs
+    then Left . head $ lefts xs
+    else pure . BLIF $ rights xs
     where xs = map parseModel . tail . splitOn ".model " $ src
 
 
