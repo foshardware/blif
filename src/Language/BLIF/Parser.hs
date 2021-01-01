@@ -3,40 +3,55 @@
 
 module Language.BLIF.Parser where
 
-import Control.Monad
-import Control.Monad.Reader
+import Data.Either
 import Data.Text (Text, splitOn, count)
-import Data.Vector (fromListN)
+import Data.Vector (replicateM)
 import Text.Parsec hiding (optional, count)
 import Text.Parsec.Pos
+import Text.Parsec.String (GenParser)
 import Prelude hiding (null)
 
 import Language.BLIF.Lexer
 import Language.BLIF.Syntax hiding (modelName)
 
 
-type Parser = ParsecT [Lexer Token] () (Reader Int)
+
+type Parser = GenParser (Lexer Token) ()
+
 
 parseBLIF :: Text -> Either ParseError BLIF
-parseBLIF src = flip runReader n $ runParserT blif () "" $ lexer [] src
-  where n = maximum $ count "." <$> splitOn ".model" src
+parseBLIF src
+  = if all isRight xs
+    then pure . BLIF $ rights xs
+    else BLIF . pure <$> head xs
+    where xs = map parseModel . tail . splitOn ".model" $ src
 
 
-blif :: Parser BLIF
-blif = BLIF <$> many1 model <?> "blif"
+parseModel :: Text -> Either ParseError Model
+parseModel src = parse (model (countCommands src)) [] (lexer [] src)
 
-model :: Parser Model
-model = Model
+
+countCommands :: Text -> Int
+countCommands src
+  = count ".names "  src
+  + count ".gate "   src
+  + count ".subckt " src
+  + count ".attr "   src
+  + count ".param "  src
+
+
+model :: Int -> Parser Model
+model k = Model
   <$> modelName
   <*> inputList
   <*> outputList
   <*> clockList
-  <*> (fromListN <$> lift ask <*> many1 command)
+  <*> replicateM k command
   <*  end_
   <?> "model"
 
 modelName :: Parser ModelName
-modelName = model_ *> ident <?> "model_name"
+modelName = ident <?> "model_name"
 
 inputList :: Parser InputList
 inputList = inputs_ *> many1 ident <|> pure [] <?> "decl_input_list"
@@ -70,7 +85,7 @@ logicGate = names_ >> LogicGate
 
 singleOutputCover :: Parser SingleOutputCover
 singleOutputCover = SingleOutputCover <$> planes <?> "single_output_cover"
-    where planes = many1 (inputPlane <|> outputPlane) <|> pure ["0"]
+    where planes = many1 (inputPlane <|> outputPlane) <|> pure []
 
 libraryGate :: Parser LibraryGate
 libraryGate = gate_ >> LibraryGate

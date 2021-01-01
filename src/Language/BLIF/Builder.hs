@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.BLIF.Builder where
 
@@ -18,20 +19,24 @@ builderBlif (BLIF ms) = foldMap builderModel ms
 
 builderModel :: Model -> Builder
 builderModel (Model name inputList outputList clockList commands) = newline
-  <> fromString ".model" <> space <> fromText name <> newline
-  <> builderWires (fromString ".inputs")  (fromText <$> inputList)
-  <> builderWires (fromString ".outputs") (fromText <$> outputList)
-  <> builderWires (fromString ".clocks")  (fromText <$> clockList)
-  <> foldl (<>) mempty (builderCommand <$> commands)
-  <> fromString ".end" <> newline
+  <> ".model" <> space <> fromText name <> newline
+  <> builderWires ".inputs"  (fromText <$> inputList)
+  <> builderWires ".outputs" (fromText <$> outputList)
+  <> builderWires ".clocks"  (fromText <$> clockList)
+  <> foldMap builderCommand commands
+  <> ".end" <> newline
 
 
 builderCommand :: Command -> Builder
-builderCommand (Subcircuit name assignments) = fromString ".subckt"
+builderCommand (Subcircuit name assignments) = ".subckt"
   <> space <> fromText name
-  <> foldl (<>) space (intersperse space $ var <$> assignments)
+  <> space <> foldMap id (intersperse space $ var <$> assignments)
   <> newline
-  where var (k, v) = fromText k <> fromString "=" <> fromText v
+  where var (k, v) = fromText k <> "=" <> fromText v
+builderCommand (LogicGate names (SingleOutputCover planes)) = ".names"
+  <> foldMap (mappend space . fromText) names
+  <> (if null planes then mempty else newline <> foldMap id (intersperse space $ fromText <$> planes))
+  <> newline
 builderCommand _ = mempty
 
 
@@ -41,8 +46,8 @@ builderWires d xs = foldl (<>) (d <> space) (intersperse space xs) <> newline
 
 
 space :: Builder
-space = fromString " "
+space = " "
 
 newline :: Builder
-newline = fromString "\n"
+newline = "\n"
 

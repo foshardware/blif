@@ -1,5 +1,5 @@
 name:                blif
-version:             0.2.0.1
+version:             0.2.0.2
 github:              "foshardware/blif"
 license:             BSD3
 author:              "Andreas Westerwick"
@@ -17,6 +17,8 @@ dependencies:
 - array
 - mtl
 - parsec
+- tasty
+- tasty-hunit
 - text
 - vector
 
@@ -26,3 +28,14 @@ library:
   - -Wall
   - -O2
 
+tests:
+  blif-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -Wall
+    - -O
+    - -threaded
+    - -rtsopts
+    dependencies:
+    - blif
