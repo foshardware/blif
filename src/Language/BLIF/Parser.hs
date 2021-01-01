@@ -8,7 +8,6 @@ import Control.Monad.Reader
 import Data.Text (Text, splitOn, count)
 import Data.Vector (fromListN)
 import Text.Parsec hiding (optional, count)
-import Text.Parsec.String (GenParser)
 import Text.Parsec.Pos
 import Prelude hiding (null)
 

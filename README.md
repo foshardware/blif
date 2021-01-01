@@ -14,7 +14,6 @@ main = do
   file <- Text.readFile "my.blif"
   putStrLn $ show $ parseBLIF file
 
-
 ```
 
 ## Building BLIF files from AST
