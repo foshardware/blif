@@ -24,7 +24,7 @@ parseBLIF src
   = if all isRight xs
     then pure . BLIF $ rights xs
     else BLIF . pure <$> head xs
-    where xs = map parseModel . tail . splitOn ".model" $ src
+    where xs = map parseModel . tail . splitOn ".model " $ src
 
 
 parseModel :: Text -> Either ParseError Model
