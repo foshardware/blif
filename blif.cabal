@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.34.3.
 --
 -- see: https://github.com/sol/hpack
 
@@ -37,7 +37,7 @@ library
   ghc-options: -Wall -O2
   build-depends:
       array
-    , base >=4.7 && <5
+    , base >=4.9.1 && <5
     , mtl
     , parsec
     , tasty
@@ -56,7 +56,7 @@ test-suite blif-test
   ghc-options: -Wall -O -threaded -rtsopts
   build-depends:
       array
-    , base >=4.7 && <5
+    , base >=4.9.1 && <5
     , blif
     , mtl
     , parsec
